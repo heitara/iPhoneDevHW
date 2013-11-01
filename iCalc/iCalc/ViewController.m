@@ -27,6 +27,7 @@
 	BOOL textFieldShouldBeCleared;
     BOOL isDotPressed;
     int digits;
+    int decimalPlacesToCalculateWith;
     
     HistoryStack * history;
 }
@@ -45,7 +46,7 @@
 	textFieldShouldBeCleared = NO;
     isDotPressed = NO;
     digits = 0;
-    
+    decimalPlacesToCalculateWith=1;
 
     
     history = [[HistoryStack alloc] init];
@@ -62,8 +63,12 @@
     [self.view addGestureRecognizer:leftSwipeRecognizer];
     [self.view addGestureRecognizer:rightSwipeRecognizer];
     
-    
     self.numberTextField.text=[[NSUserDefaults standardUserDefaults] stringForKey:@"CalulatorText"];
+    
+    if([self dotLocation]!=-1)
+    {
+        isDotPressed=YES;
+    }
     
     [[NSNotificationCenter defaultCenter] addObserver: self
                                              selector: @selector(saveAndCleanup)
@@ -106,12 +111,12 @@
     {
         case UISwipeGestureRecognizerDirectionLeft:
         {
-            [self handleDecimalPlaces:1];
+            [self removeDecimalPlace];
             break;
         }
         case  UISwipeGestureRecognizerDirectionRight:
         {
-            [self handleDecimalPlaces:-1];
+            [self addDecimalPlace];
             break;
         }
         default:
@@ -136,16 +141,32 @@
                                               forKey:@"CalulatorDecimal"];
 }
 
--(void) handleDecimalPlaces:(NSInteger *)decimalPLacesToShiftToTheLeft
+-(void) addDecimalPlace
 {
     if([self dotLocation]!=-1)
     {
         //TODO implemenet
         
+        [self.numberTextField setText:[NSString stringWithFormat:@"%@%@",self.numberTextField.text ,@"0"]];
     }
     else
     {
-        //TODO implement
+        [self.numberTextField setText:[NSString stringWithFormat:@"%@%@",self.numberTextField.text ,@".0"]];
+        
+    }
+}
+-(void) removeDecimalPlace
+{
+    if([self dotLocation]!=-1)
+    {
+        if([self decimalPlaces]==1)
+        {
+           [self.numberTextField setText:[self.numberTextField.text stringByPaddingToLength:self.numberTextField.text.length-2 withString:@""  startingAtIndex:0]];
+        }
+        else
+        {
+            [self.numberTextField setText:[self.numberTextField.text stringByPaddingToLength:self.numberTextField.text.length-1 withString:@""  startingAtIndex:0]];
+        }
     }
 }
 
@@ -200,7 +221,8 @@
         [self enableOperations];
 		currentOperation = sender.tag;
         sender.enabled = NO;
-		self.numberTextField.text = [NSString stringWithFormat:@"%f",firstOperand];
+        //self.numberTextField.text = [NSString stringWithFormat:@"%%@f",decimalPlacesToCalculateWith]; not working yet
+		self.numberTextField.text = [NSString stringWithFormat:@"%2f",firstOperand];
 		// The previous line does exactly the same as
 		// [self.numberTextField setText:[NSString stringWithFormat:@"%.1f",firstOperand]];
         
@@ -219,7 +241,7 @@
     if(currentOperation != OP_NOOP)
     {
         result = [self executeOperation:currentOperation withArgument:firstOperand andSecondArgument:[self.numberTextField.text floatValue]];
-        self.numberTextField.text = [NSString stringWithFormat:@"%.1f",result];
+        self.numberTextField.text = [NSString stringWithFormat:@"%.2f",result];
     }
     //put the result in the history
     [history addValue:[NSNumber numberWithFloat:result]];
@@ -332,8 +354,6 @@
         isDotPressed = YES;
         self.numberTextField.text = [self.numberTextField.text stringByAppendingString:@"."];
     }
-
-    
 }
 
 #pragma mark - General Methods

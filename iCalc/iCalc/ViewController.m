@@ -26,8 +26,10 @@
 	unsigned char currentOperation;
 	BOOL textFieldShouldBeCleared;
     BOOL isDotPressed;
+    BOOL secondOperandIsBeingEntered;
     int digits;
     int decimalPlacesToCalculateWith;
+    float ScreenViewedSourceFloat;
     
     HistoryStack * history;
 }
@@ -47,10 +49,22 @@
     isDotPressed = NO;
     digits = 0;
     decimalPlacesToCalculateWith=1;
-
+    secondOperandIsBeingEntered=NO;
     
     history = [[HistoryStack alloc] init];
     
+    [self handleGestures];
+    [self instantiateAllSavedValues];
+    
+    [[NSNotificationCenter defaultCenter] addObserver: self
+                                             selector: @selector(saveAndCleanup)
+                                                 name: @"handleCleanup"
+                                               object: nil];
+
+}
+
+-(void)handleGestures
+{
     UISwipeGestureRecognizer *leftSwipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleGesture:)];
     leftSwipeRecognizer.direction = UISwipeGestureRecognizerDirectionLeft;
     leftSwipeRecognizer.numberOfTouchesRequired = 1;
@@ -62,21 +76,43 @@
     
     [self.view addGestureRecognizer:leftSwipeRecognizer];
     [self.view addGestureRecognizer:rightSwipeRecognizer];
+}
+
+
+-(void) getTag
+{
     
-    self.numberTextField.text=[[NSUserDefaults standardUserDefaults] stringForKey:@"CalulatorText"];
+}
+
+-(void) instantiateAllSavedValues
+{
     
+    firstOperand=[[NSUserDefaults standardUserDefaults] integerForKey:@"FirstOperandValue"];
+    if([[NSUserDefaults standardUserDefaults] integerForKey:@"Operator"]!=OP_NOOP)
+    {
+        
+        UIButton *temp = (UIButton *)[self.view viewWithTag:1001];
+    }
+    NSInteger *secondButtonWasSet=[[NSUserDefaults standardUserDefaults] integerForKey:@"SecondOperandSet"];
+    if(secondButtonWasSet==0)
+    {
+        self.numberTextField.text=[NSString stringWithFormat:@"%d",[[NSUserDefaults standardUserDefaults] integerForKey:@"FirstOperandValue"]];
+    }
+    else // it is equal 1 here
+    {
+        self.numberTextField.text=[NSString stringWithFormat:@"%d",[[NSUserDefaults standardUserDefaults] integerForKey:@"SecondOperandValue"]];
+    }
+   
     if([self dotLocation]!=-1)
     {
         isDotPressed=YES;
     }
     
-    [[NSNotificationCenter defaultCenter] addObserver: self
-                                             selector: @selector(saveAndCleanup)
-                                                 name: @"handleCleanup"
-                                               object: nil];
-    //TODO use dot places
-    //[[NSUserDefaults standardUserDefaults] integerForKey:@"CalulatorDecimal"];
-
+    
+    //TODO EMIL Check the value of currentOperation and highlight the corresponding Button.
+    
+    ScreenViewedSourceFloat=[self.numberTextField.text floatValue];
+    decimalPlacesToCalculateWith=[[NSUserDefaults standardUserDefaults] integerForKey:@"CalulatorDecimal"];
 }
 
 -(void) encodeRestorableStateWithCoder:(NSCoder *)coder
@@ -129,25 +165,45 @@
 }
 -(void)saveAndCleanup
 {
-    [[NSUserDefaults standardUserDefaults] setObject:self.numberTextField.text
-                                              forKey:@"CalulatorText"];
-    [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithInteger:[self decimalPlaces]]
+   //[[NSUserDefaults standardUserDefaults] setObject:self.numberTextField.text
+     //                                         forKey:@"CalulatorText"];
+    [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithInteger:decimalPlacesToCalculateWith]
                                               forKey:@"CalulatorDecimal"];
+    
+    if(currentOperation != OP_NOOP)
+    {
+        [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithFloat:firstOperand]
+                                                  forKey:@"FirstOperandValue"];
+        [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithUnsignedChar:currentOperation]
+                                                  forKey:@"Operator"];
+    }
+    
+    if(secondOperandIsBeingEntered)
+    {
+        [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithFloat:[self.numberTextField.text floatValue]]
+                                                  forKey:@"SecondOperandValue"];
+        [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithInt:1]
+                                                  forKey:@"SecondOperandSet"];
+        //this is done with 2 values to show the difference between two states: having 0 as the second button pressed and right after pressing the first operand
+    }
+    else
+    {
+        [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithInt:0]
+                                                  forKey:@"SecondOperandSet"];
+    }
 }
 
 -(void) addDecimalPlace
 {
-    if([self dotLocation]!=-1)
+    //TODO maybe rounding
+    NSString *resultString = [NSString stringWithFormat:@"%.9f", ScreenViewedSourceFloat];
+    
+    if([self dotLocation]==-1)
     {
-        //TODO implemenet
-        
-        [self.numberTextField setText:[NSString stringWithFormat:@"%@%@",self.numberTextField.text ,@"0"]];
+        [self.numberTextField setText:[NSString stringWithFormat:@"%@%@",self.numberTextField.text ,@"."]];
     }
-    else
-    {
-        [self.numberTextField setText:[NSString stringWithFormat:@"%@%@",self.numberTextField.text ,@".0"]];
-        
-    }
+    
+        [self.numberTextField setText:[resultString stringByPaddingToLength:self.numberTextField.text.length+1 withString:@""  startingAtIndex:0]];
 }
 -(void) removeDecimalPlace
 {
@@ -215,14 +271,18 @@
         [self enableOperations];
 		currentOperation = sender.tag;
         sender.enabled = NO;
-        //self.numberTextField.text = [NSString stringWithFormat:@"%%@f",decimalPlacesToCalculateWith]; not working yet
-		self.numberTextField.text = [NSString stringWithFormat:@"%2f",firstOperand];
+        
+        
+        //self.numberTextField.text = [NSString stringWithFormat:@"*i%d",decimalPlacesToCalculateWith]; not working yet check http://stackoverflow.com/questions/13696188/dynamic-string-format-with-nsstring-stringwithformat
+        
+		self.numberTextField.text = [NSString stringWithFormat:@"%4f",firstOperand];
 		// The previous line does exactly the same as
 		// [self.numberTextField setText:[NSString stringWithFormat:@"%.1f",firstOperand]];
         
         
 
 	}
+    ScreenViewedSourceFloat=firstOperand;
 	textFieldShouldBeCleared = YES;
     isDotPressed = NO;
 }
@@ -234,16 +294,18 @@
 	float result = [self.numberTextField.text floatValue];
     if(currentOperation != OP_NOOP)
     {
-        result = [self executeOperation:currentOperation withArgument:firstOperand andSecondArgument:[self.numberTextField.text floatValue]];
-        self.numberTextField.text = [NSString stringWithFormat:@"%.2f",result];
+        result = [self executeOperation:currentOperation withArgument:firstOperand andSecondArgument:result];
+        self.numberTextField.text = [NSString stringWithFormat:@"%.4f",result];
     }
     //put the result in the history
     [history addValue:[NSNumber numberWithFloat:result]];
     [self updateArrowLabels];
 	// Reset the internal state
 	currentOperation = OP_NOOP;
+    ScreenViewedSourceFloat=result;
 	firstOperand = 0.;
     [self enableOperations];
+    secondOperandIsBeingEntered=NO;
 //    sender.enabled = NO;
 
 }
@@ -278,6 +340,12 @@
 }
 
 - (IBAction)numberEntered:(UIButton *)sender {
+    
+    if(currentOperation != OP_NOOP)
+    {
+        secondOperandIsBeingEntered=YES;
+    }
+    
 	// If the textField is to be cleared, just replace it with the pressed number
 	if (textFieldShouldBeCleared)
 	{
@@ -307,6 +375,7 @@
             self.numberTextField.text = [self.numberTextField.text stringByAppendingFormat:@"%i", sender.tag];
         }
 	}
+    ScreenViewedSourceFloat=[self.numberTextField.text floatValue];
 }
 
 // The parameter type id says that any object can be sender of this method.
@@ -318,6 +387,7 @@
     [self enableOperations];
     isDotPressed = NO;
     digits = 0;
+    secondOperandIsBeingEntered=NO;
 }
 
 - (IBAction)dotPressed:(id)sender

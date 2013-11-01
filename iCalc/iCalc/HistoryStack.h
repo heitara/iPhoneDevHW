@@ -18,6 +18,11 @@
 -(void) left;
 -(void) right;
 -(int) getCount;
+-(int) getLeftSize;
+-(int) getRightSize;
 
+
+-(void) saveToFile;
+-(void) loadFromFile;
 
 @end

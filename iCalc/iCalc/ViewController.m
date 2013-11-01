@@ -60,6 +60,20 @@
                                              selector: @selector(saveAndCleanup)
                                                  name: @"handleCleanup"
                                                object: nil];
+    //TODO use dot places
+    //[[NSUserDefaults standardUserDefaults] integerForKey:@"CalulatorDecimal"];
+    
+    
+    UIApplication *app = [UIApplication sharedApplication];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(applicationDidEnterBackground:)
+                                                 name:UIApplicationDidEnterBackgroundNotification
+                                               object:app];
+    
+    NSLog(@"load from file");
+    [history  loadFromFile];
+    [self updateArrowLabels];
 
 }
 
@@ -108,26 +122,18 @@
         isDotPressed=YES;
     }
     
-    
     //TODO EMIL Check the value of currentOperation and highlight the corresponding Button.
     
     ScreenViewedSourceFloat=[self.numberTextField.text floatValue];
     decimalPlacesToCalculateWith=[[NSUserDefaults standardUserDefaults] integerForKey:@"CalulatorDecimal"];
+
 }
 
--(void) encodeRestorableStateWithCoder:(NSCoder *)coder
+-(void)applicationDidEnterBackground:(UIApplication *) application
 {
-    //TODO: save the history in file
-    NSLog(@"save the history");
-
+    NSLog(@"save to file");
+    [history  saveToFile];
 }
-
--(void) decodeRestorableStateWithCoder:(NSCoder *)coder
-{
-    NSLog(@"load the history data");
-    //TODO: load the history from file
-}
-
 
 - (void)handleGesture:(UIGestureRecognizer *)gestureRecognizer;
 {
@@ -155,6 +161,7 @@
             break;
     }
 }
+
 -(NSInteger) dotLocation
 {
     if ([self.numberTextField.text rangeOfString:@"."].location == NSNotFound)
@@ -163,6 +170,7 @@
     }
     return [self.numberTextField.text rangeOfString:@"."].location;
 }
+
 -(void)saveAndCleanup
 {
    //[[NSUserDefaults standardUserDefaults] setObject:self.numberTextField.text
@@ -299,13 +307,14 @@
     }
     //put the result in the history
     [history addValue:[NSNumber numberWithFloat:result]];
-    [self updateArrowLabels];
+
 	// Reset the internal state
 	currentOperation = OP_NOOP;
     ScreenViewedSourceFloat=result;
 	firstOperand = 0.;
     [self enableOperations];
     secondOperandIsBeingEntered=NO;
+    [self updateArrowLabels];
 //    sender.enabled = NO;
 
 }
@@ -314,28 +323,47 @@
 
 - (IBAction)backPressed:(id)sender
 {
-    [history left];
-    NSString * result = (NSString*)[history getCurrent];
-    self.numberTextField.text = [NSString stringWithFormat:@"%@",result];
-
-    [self updateArrowLabels];
-    
+    if([history getCount])
+    {
+        [history left];
+        NSString * result = (NSString*)[history getCurrent];
+        self.numberTextField.text = [NSString stringWithFormat:@"%@",result];
+        [self updateArrowLabels];
+    }
 }
 
 - (IBAction)forwardPressed:(id)sender {
-    
-    [history right];
-    NSString * result = (NSString*)[history getCurrent];
-    self.numberTextField.text = [NSString stringWithFormat:@"%@",result];
+    if([history getCount])
+    {
+        [history right];
+        NSString * result = (NSString*)[history getCurrent];
+        self.numberTextField.text = [NSString stringWithFormat:@"%@",result];
 
-    [self updateArrowLabels];
-    
+        [self updateArrowLabels];
+    }
 }
 
 -(void) updateArrowLabels
 {
-    [self.back setTitle:[NSString stringWithFormat:@"←%i", [history getCount]] forState:UIControlStateNormal];
-    [self.forward setTitle:[NSString stringWithFormat:@"%i→", [history getCount]] forState:UIControlStateNormal];
+    int left = [history getLeftSize];
+    int right = [history getRightSize];
+    if(left)
+    {
+        [self.back setTitle:[NSString stringWithFormat:@"←%i", left] forState:UIControlStateNormal];
+    } else
+    {
+        [self.back setTitle:[NSString stringWithFormat:@"←"] forState:UIControlStateNormal];
+    }
+    
+    if(right)
+    {
+        [self.forward setTitle:[NSString stringWithFormat:@"%i→", right] forState:UIControlStateNormal];
+    } else
+    {
+       [self.forward setTitle:[NSString stringWithFormat:@"→"] forState:UIControlStateNormal];
+    }
+    
+    
     
 }
 

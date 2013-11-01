@@ -110,4 +110,50 @@
     return stack.count;
 }
 
+-(int) getLeftSize
+{
+    if (stack.count ) {
+        if(stack.count == 1)
+            return 1;
+        return _currentIndex + 1;
+    }
+    return 0;
+}
+
+-(int) getRightSize
+{
+    if (stack.count == 0) {
+        return 0;
+    }
+    
+    return stack.count - 1 - _currentIndex;
+}
+
+-(void) saveToFile
+{
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    //2) Create the full file path by appending the desired file name
+    NSString *yourArrayFileName = [documentsDirectory stringByAppendingPathComponent:@"history.dat"];
+    
+    [stack writeToFile:yourArrayFileName atomically:YES];
+}
+
+-(void) loadFromFile
+{
+    
+    
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    //2) Create the full file path by appending the desired file name
+    NSString *yourArrayFileName = [documentsDirectory stringByAppendingPathComponent:@"history.dat"];
+    BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:yourArrayFileName];
+    
+	if (fileExists)
+	{
+        stack = [[NSMutableArray alloc] initWithContentsOfFile:yourArrayFileName];
+        [self last];
+    }
+}
+
 @end

@@ -16,7 +16,6 @@
 
 
 #import "ViewController.h"
-#import "HistoryStack.h"
 
 @interface ViewController ()
 {
@@ -27,8 +26,6 @@
 	BOOL textFieldShouldBeCleared;
     BOOL isDotPressed;
     int digits;
-    
-    HistoryStack * history;
 }
 
 @end
@@ -45,108 +42,8 @@
 	textFieldShouldBeCleared = NO;
     isDotPressed = NO;
     digits = 0;
-    
-
-    
-    history = [[HistoryStack alloc] init];
-    
-    UISwipeGestureRecognizer *leftSwipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleGesture:)];
-    leftSwipeRecognizer.direction = UISwipeGestureRecognizerDirectionLeft;
-    leftSwipeRecognizer.numberOfTouchesRequired = 1;
-    
-    UISwipeGestureRecognizer *rightSwipeRecognizer = [[UISwipeGestureRecognizer alloc] init];
-    rightSwipeRecognizer.direction = UISwipeGestureRecognizerDirectionRight;
-    rightSwipeRecognizer.numberOfTouchesRequired = 1;
-    [rightSwipeRecognizer addTarget:self action:@selector(handleGesture:)];
-    
-    [self.view addGestureRecognizer:leftSwipeRecognizer];
-    [self.view addGestureRecognizer:rightSwipeRecognizer];
-    
-    
-    self.numberTextField.text=[[NSUserDefaults standardUserDefaults] stringForKey:@"CalulatorText"];
-    
-    [[NSNotificationCenter defaultCenter] addObserver: self
-                                             selector: @selector(saveAndCleanup)
-                                                 name: @"handleCleanup"
-                                               object: nil];
-    //TODO use dot places
-    //[[NSUserDefaults standardUserDefaults] integerForKey:@"CalulatorDecimal"];
-
 }
 
--(void) encodeRestorableStateWithCoder:(NSCoder *)coder
-{
-    //TODO: save the history in file
-    NSLog(@"save the history");
-
-}
-
--(void) decodeRestorableStateWithCoder:(NSCoder *)coder
-{
-    NSLog(@"load the history data");
-    //TODO: load the history from file
-}
-
-
-- (void)handleGesture:(UIGestureRecognizer *)gestureRecognizer;
-{
-    // ignore other gesture recognizer
-    if (![gestureRecognizer isKindOfClass:[UISwipeGestureRecognizer class]])
-    {
-        return;
-    }
-    
-    UISwipeGestureRecognizer *swipeRecognizer = (UISwipeGestureRecognizer *)gestureRecognizer;
-    
-    switch (swipeRecognizer.direction)
-    {
-        case UISwipeGestureRecognizerDirectionLeft:
-        {
-            [self handleDecimalPlaces:1];
-            break;
-        }
-        case  UISwipeGestureRecognizerDirectionRight:
-        {
-            [self handleDecimalPlaces:-1];
-            break;
-        }
-        default:
-            break;
-    }
-}
--(NSInteger) dotLocation
-{
-    if ([self.numberTextField.text rangeOfString:@"."].location == NSNotFound)
-    {
-        return -1;
-    }
-    return [self.numberTextField.text rangeOfString:@"."].location;
-}
--(void)saveAndCleanup
-{
-    [[NSUserDefaults standardUserDefaults] setObject:self.numberTextField.text
-                                              forKey:@"CalulatorText"];
-    [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithInteger:[self decimalPlaces]]
-                                              forKey:@"CalulatorDecimal"];
-}
-
--(void) handleDecimalPlaces:(NSInteger *)decimalPLacesToShiftToTheLeft
-{
-    if([self dotLocation]!=-1)
-    {
-        //TODO implemenet
-        
-    }
-    else
-    {
-        //TODO implement
-    }
-}
-
--(NSInteger) decimalPlaces
-{
-    return self.numberTextField.text.length - self.dotLocation - 1;
-}
 
 - (void)didReceiveMemoryWarning
 {
@@ -208,51 +105,14 @@
 - (IBAction)resultButtonPressed:(UIButton *)sender {
 	
 	// Just calculate the result
-    
-	float result = [self.numberTextField.text floatValue];
-    if(currentOperation != OP_NOOP)
-    {
-        result = [self executeOperation:currentOperation withArgument:firstOperand andSecondArgument:[self.numberTextField.text floatValue]];
-        self.numberTextField.text = [NSString stringWithFormat:@"%.1f",result];
-    }
-    //put the result in the history
-    [history addValue:[NSNumber numberWithFloat:result]];
-    [self updateArrowLabels];
+	float result = [self executeOperation:currentOperation withArgument:firstOperand andSecondArgument:[self.numberTextField.text floatValue]];
+	self.numberTextField.text = [NSString stringWithFormat:@"%.1f",result];
 	// Reset the internal state
 	currentOperation = OP_NOOP;
 	firstOperand = 0.;
     [self enableOperations];
-//    sender.enabled = NO;
+    sender.enabled = NO;
 
-}
-
-#pragma mark - arrows functions
-
-- (IBAction)backPressed:(id)sender
-{
-    [history left];
-    NSString * result = (NSString*)[history getCurrent];
-    self.numberTextField.text = [NSString stringWithFormat:@"%@",result];
-
-    [self updateArrowLabels];
-    
-}
-
-- (IBAction)forwardPressed:(id)sender {
-    
-    [history right];
-    NSString * result = (NSString*)[history getCurrent];
-    self.numberTextField.text = [NSString stringWithFormat:@"%@",result];
-
-    [self updateArrowLabels];
-    
-}
-
--(void) updateArrowLabels
-{
-    [self.back setTitle:[NSString stringWithFormat:@"←%i", [history getCount]] forState:UIControlStateNormal];
-    [self.forward setTitle:[NSString stringWithFormat:@"%i→", [history getCount]] forState:UIControlStateNormal];
-    
 }
 
 - (IBAction)numberEntered:(UIButton *)sender {

@@ -148,14 +148,14 @@
 {
     if([self dotLocation]!=-1)
     {
-        //TODO implemenet
-        
-        [self.numberTextField setText:[NSString stringWithFormat:@"%@%@",self.numberTextField.text ,@".0"]];
-    }
-    else
-    {
-        [self.numberTextField setText:[NSString stringWithFormat:@"%@%@",self.numberTextField.text ,@".0"]];
-        //TODO implement
+        if([self decimalPlaces]==1)
+        {
+           [self.numberTextField setText:[self.numberTextField.text stringByPaddingToLength:self.numberTextField.text.length-2 withString:@""  startingAtIndex:0]];
+        }
+        else
+        {
+            [self.numberTextField setText:[self.numberTextField.text stringByPaddingToLength:self.numberTextField.text.length-1 withString:@""  startingAtIndex:0]];
+        }
     }
 }
 
@@ -321,8 +321,6 @@
         isDotPressed = YES;
         self.numberTextField.text = [self.numberTextField.text stringByAppendingString:@"."];
     }
-
-    
 }
 
 #pragma mark - General Methods

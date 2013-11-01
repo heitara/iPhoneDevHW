@@ -102,12 +102,12 @@
     {
         case UISwipeGestureRecognizerDirectionLeft:
         {
-            [self handleDecimalPlaces:1];
+            [self removeDecimalPlace];
             break;
         }
         case  UISwipeGestureRecognizerDirectionRight:
         {
-            [self handleDecimalPlaces:-1];
+            [self addDecimalPlace];
             break;
         }
         default:
@@ -130,15 +130,31 @@
                                               forKey:@"CalulatorDecimal"];
 }
 
--(void) handleDecimalPlaces:(NSInteger *)decimalPLacesToShiftToTheLeft
+-(void) addDecimalPlace
 {
     if([self dotLocation]!=-1)
     {
         //TODO implemenet
         
+        [self.numberTextField setText:[NSString stringWithFormat:@"%@%@",self.numberTextField.text ,@"0"]];
     }
     else
     {
+        [self.numberTextField setText:[NSString stringWithFormat:@"%@%@",self.numberTextField.text ,@".0"]];
+        
+    }
+}
+-(void) removeDecimalPlace
+{
+    if([self dotLocation]!=-1)
+    {
+        //TODO implemenet
+        
+        [self.numberTextField setText:[NSString stringWithFormat:@"%@%@",self.numberTextField.text ,@".0"]];
+    }
+    else
+    {
+        [self.numberTextField setText:[NSString stringWithFormat:@"%@%@",self.numberTextField.text ,@".0"]];
         //TODO implement
     }
 }

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		20A09602182404E10040A8FE /* HistoryStack.m in Sources */ = {isa = PBXBuildFile; fileRef = 20A09601182404E10040A8FE /* HistoryStack.m */; };
 		4C6CBA74161F28DD0020BFF7 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C6CBA73161F28DD0020BFF7 /* UIKit.framework */; };
 		4C6CBA76161F28DD0020BFF7 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C6CBA75161F28DD0020BFF7 /* Foundation.framework */; };
 		4C6CBA78161F28DD0020BFF7 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C6CBA77161F28DD0020BFF7 /* CoreGraphics.framework */; };
@@ -21,6 +22,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		20A09600182404E10040A8FE /* HistoryStack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HistoryStack.h; sourceTree = "<group>"; };
+		20A09601182404E10040A8FE /* HistoryStack.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HistoryStack.m; sourceTree = "<group>"; };
 		4C6CBA6F161F28DD0020BFF7 /* iCalc.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iCalc.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C6CBA73161F28DD0020BFF7 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		4C6CBA75161F28DD0020BFF7 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -89,6 +92,8 @@
 				4C6CBA8C161F28DD0020BFF7 /* ViewController.m */,
 				4C6CBA8E161F28DD0020BFF7 /* ViewController.xib */,
 				4C6CBA7A161F28DD0020BFF7 /* Supporting Files */,
+				20A09600182404E10040A8FE /* HistoryStack.h */,
+				20A09601182404E10040A8FE /* HistoryStack.m */,
 			);
 			path = iCalc;
 			sourceTree = "<group>";
@@ -134,7 +139,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0450;
-				ORGANIZATIONNAME = "Florian Heller";
+				ORGANIZATIONNAME = "Lancelotmobile Ltd.";
 			};
 			buildConfigurationList = 4C6CBA69161F28DD0020BFF7 /* Build configuration list for PBXProject "iCalc" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -174,6 +179,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4C6CBA80161F28DD0020BFF7 /* main.m in Sources */,
+				20A09602182404E10040A8FE /* HistoryStack.m in Sources */,
 				4C6CBA84161F28DD0020BFF7 /* AppDelegate.m in Sources */,
 				4C6CBA8D161F28DD0020BFF7 /* ViewController.m in Sources */,
 			);

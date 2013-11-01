@@ -18,5 +18,8 @@
 - (IBAction)clearDisplay:(id)sender;
 - (IBAction)dotPressed:(id)sender;
 
+@property (weak, nonatomic) IBOutlet UIButton *back;
+@property (weak, nonatomic) IBOutlet UIButton *forward;
+
 
 @end

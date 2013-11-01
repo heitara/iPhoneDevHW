@@ -16,6 +16,7 @@
 
 
 #import "ViewController.h"
+#import "HistoryStack.h"
 
 @interface ViewController ()
 {
@@ -26,6 +27,8 @@
 	BOOL textFieldShouldBeCleared;
     BOOL isDotPressed;
     int digits;
+    
+    HistoryStack * history;
 }
 
 @end
@@ -42,6 +45,22 @@
 	textFieldShouldBeCleared = NO;
     isDotPressed = NO;
     digits = 0;
+    
+    //TODO: load the stack from file
+    
+    history = [[HistoryStack alloc] init];
+
+}
+
+-(void) encodeRestorableStateWithCoder:(NSCoder *)coder
+{
+    NSLog(@"save the history");
+
+}
+
+-(void) decodeRestorableStateWithCoder:(NSCoder *)coder
+{
+    NSLog(@"load the history data");
 }
 
 
@@ -105,14 +124,51 @@
 - (IBAction)resultButtonPressed:(UIButton *)sender {
 	
 	// Just calculate the result
-	float result = [self executeOperation:currentOperation withArgument:firstOperand andSecondArgument:[self.numberTextField.text floatValue]];
-	self.numberTextField.text = [NSString stringWithFormat:@"%.1f",result];
+    
+	float result = [self.numberTextField.text floatValue];
+    if(currentOperation != OP_NOOP)
+    {
+        result = [self executeOperation:currentOperation withArgument:firstOperand andSecondArgument:[self.numberTextField.text floatValue]];
+        self.numberTextField.text = [NSString stringWithFormat:@"%.1f",result];
+    }
+    //put the result in the history
+    [history addValue:[NSNumber numberWithFloat:result]];
+    [self updateArrowLabels];
 	// Reset the internal state
 	currentOperation = OP_NOOP;
 	firstOperand = 0.;
     [self enableOperations];
-    sender.enabled = NO;
+//    sender.enabled = NO;
 
+}
+
+#pragma mark - arrows functions
+
+- (IBAction)backPressed:(id)sender
+{
+    [history left];
+    NSString * result = (NSString*)[history getCurrent];
+    self.numberTextField.text = [NSString stringWithFormat:@"%@",result];
+
+    [self updateArrowLabels];
+    
+}
+
+- (IBAction)forwardPressed:(id)sender {
+    
+    [history right];
+    NSString * result = (NSString*)[history getCurrent];
+    self.numberTextField.text = [NSString stringWithFormat:@"%@",result];
+
+    [self updateArrowLabels];
+    
+}
+
+-(void) updateArrowLabels
+{
+    [self.back setTitle:[NSString stringWithFormat:@"←%i", [history getCount]] forState:UIControlStateNormal];
+    [self.forward setTitle:[NSString stringWithFormat:@"%i→", [history getCount]] forState:UIControlStateNormal];
+    
 }
 
 - (IBAction)numberEntered:(UIButton *)sender {

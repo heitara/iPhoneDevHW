@@ -54,8 +54,6 @@
     
     [self handleGestures];
     [self instantiateAllSavedValues];
-    //TODO use dot places
-    //[[NSUserDefaults standardUserDefaults] integerForKey:@"CalulatorDecimal"];
 
     [self addDefaultCenterNotifications];
     NSLog(@"load from file");

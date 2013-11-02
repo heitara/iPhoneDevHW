@@ -472,7 +472,7 @@
         self.numberTextField.text = @"";
         textFieldShouldBeCleared = NO;
     }
-    if(!isDotPressed&&[self dotLocation]==-1)
+    if([self dotLocation]==-1)//!isDotPressed removed because not always working...
     {
         isDotPressed = YES;
         if ([self.numberTextField.text  isEqual: @""])

@@ -29,8 +29,7 @@
     BOOL secondOperandIsBeingEntered;
     int digits;
     int decimalPlacesToCalculateWith;
-    float ScreenViewedSourceFloat;
-    
+    NSString *screenViewSourcefloatInNSString;
     HistoryStack * history;
 }
 
@@ -42,7 +41,6 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
 	// Do any additional setup after loading the view, typically from a nib.
 	currentOperation = OP_NOOP;
 	textFieldShouldBeCleared = NO;
@@ -51,18 +49,22 @@
     decimalPlacesToCalculateWith=1;
     secondOperandIsBeingEntered=NO;
     
+    //[[NSUserDefaults standardUserDefaults] setPersistentDomain:[NSDictionary dictionary] forName:[[NSBundle mainBundle] bundleIdentifier]];
     history = [[HistoryStack alloc] init];
     
     [self handleGestures];
     [self instantiateAllSavedValues];
-    
-    [[NSNotificationCenter defaultCenter] addObserver: self
-                                             selector: @selector(saveAndCleanup)
-                                                 name: @"handleCleanup"
-                                               object: nil];
     //TODO use dot places
     //[[NSUserDefaults standardUserDefaults] integerForKey:@"CalulatorDecimal"];
-    
+
+    [self addDefaultCenterNotifications];
+    NSLog(@"load from file");
+    [history  loadFromFile];
+    [self updateArrowLabels];
+}
+
+-(void)addDefaultCenterNotifications
+{
     
     UIApplication *app = [UIApplication sharedApplication];
     
@@ -70,11 +72,11 @@
                                              selector:@selector(applicationDidEnterBackground:)
                                                  name:UIApplicationDidEnterBackgroundNotification
                                                object:app];
-    
-    NSLog(@"load from file");
-    [history  loadFromFile];
-    [self updateArrowLabels];
 
+    [[NSNotificationCenter defaultCenter] addObserver: self
+                                             selector: @selector(saveAndCleanup)
+                                                 name: @"handleCleanup"
+                                               object: nil];
 }
 
 -(void)handleGestures
@@ -93,22 +95,42 @@
 }
 
 
--(void) getTag
+-(int) mapOperationToTag:(unsigned char) opr
 {
-    
+    switch (opr)
+    {
+        case OP_ADD:
+            return 11;
+            break;
+        case OP_SUB:
+            return 12;
+            break;
+        case OP_MUL:
+            return 13;
+            break;
+        case OP_DIV:
+            return 14;
+            break;
+        case OP_EQ:
+            return 100;
+            break;
+            
+        default:
+            return 0;
+            break;
+    }
 }
 
 -(void) instantiateAllSavedValues
 {
-    
-    firstOperand=[[NSUserDefaults standardUserDefaults] integerForKey:@"FirstOperandValue"];
     if([[NSUserDefaults standardUserDefaults] integerForKey:@"Operator"]!=OP_NOOP)
     {
-        
-        UIButton *temp = (UIButton *)[self.view viewWithTag:1001];
+        UIButton *button= (UIButton *)[self.view viewWithTag:[self mapOperationToTag:[[NSUserDefaults standardUserDefaults] integerForKey:@"Operator"]]];
+        [self operationButtonPressed:button];
     }
-    NSInteger *secondButtonWasSet=[[NSUserDefaults standardUserDefaults] integerForKey:@"SecondOperandSet"];
-    if(secondButtonWasSet==0)
+    firstOperand=[[NSUserDefaults standardUserDefaults] integerForKey:@"FirstOperandValue"];
+    int *secondButtonWasSet=[[NSUserDefaults standardUserDefaults] integerForKey:@"SecondOperandSet"];
+    if(secondButtonWasSet==0 )//|| secondButtonWasSet==NULL
     {
         self.numberTextField.text=[NSString stringWithFormat:@"%d",[[NSUserDefaults standardUserDefaults] integerForKey:@"FirstOperandValue"]];
     }
@@ -122,11 +144,8 @@
         isDotPressed=YES;
     }
     
-    //TODO EMIL Check the value of currentOperation and highlight the corresponding Button.
-    
-    ScreenViewedSourceFloat=[self.numberTextField.text floatValue];
+    screenViewSourcefloatInNSString=self.numberTextField.text;
     decimalPlacesToCalculateWith=[[NSUserDefaults standardUserDefaults] integerForKey:@"CalulatorDecimal"];
-
 }
 
 -(void)applicationDidEnterBackground:(UIApplication *) application
@@ -185,6 +204,12 @@
         [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithUnsignedChar:currentOperation]
                                                   forKey:@"Operator"];
     }
+    else
+    {
+        [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithFloat:[self.numberTextField.text  floatValue]]forKey:@"FirstOperandValue"];
+        [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithUnsignedChar:OP_NOOP]
+                                                  forKey:@"Operator"];
+    }
     
     if(secondOperandIsBeingEntered)
     {
@@ -204,33 +229,58 @@
 -(void) addDecimalPlace
 {
     //TODO maybe rounding
-    NSString *resultString = [NSString stringWithFormat:@"%.9f", ScreenViewedSourceFloat];
+    if(self.numberTextField.text.length==screenViewSourcefloatInNSString.length)
+    {
+        return;
+    }
+    
+    //decimalPlacesToCalculateWith=MAX([self decimalPlaces],decimalPlacesToCalculateWith);
     
     if([self dotLocation]==-1)
     {
         [self.numberTextField setText:[NSString stringWithFormat:@"%@%@",self.numberTextField.text ,@"."]];
+        //decimalPlacesToCalculateWith=1;
+    }
+    else
+    {
+      //  decimalPlacesToCalculateWith=MAX([self decimalPlaces]+1,decimalPlacesToCalculateWith);
     }
     
-        [self.numberTextField setText:[resultString stringByPaddingToLength:self.numberTextField.text.length+1 withString:@""  startingAtIndex:0]];
+        [self.numberTextField setText:[screenViewSourcefloatInNSString stringByPaddingToLength:self.numberTextField.text.length+1 withString:@""  startingAtIndex:0]];
+    decimalPlacesToCalculateWith=[self decimalPlaces];
 }
 -(void) removeDecimalPlace
 {
     if([self dotLocation]!=-1)
     {
-        if([self decimalPlaces]==1)
+        //decimalPlacesToCalculateWith=MAX([self decimalPlaces],decimalPlacesToCalculateWith);
+        if([self decimalPlaces]==1) // so remove last number and .
         {
            [self.numberTextField setText:[self.numberTextField.text stringByPaddingToLength:self.numberTextField.text.length-2 withString:@""  startingAtIndex:0]];
+            decimalPlacesToCalculateWith=0;
         }
-        else
+        else  //remove only last number
         {
             [self.numberTextField setText:[self.numberTextField.text stringByPaddingToLength:self.numberTextField.text.length-1 withString:@""  startingAtIndex:0]];
+            if(decimalPlacesToCalculateWith!=0)
+            {
+                 //decimalPlacesToCalculateWith=MAX([self decimalPlaces]-1,decimalPlacesToCalculateWith);
+            }
         }
     }
+    decimalPlacesToCalculateWith=[self decimalPlaces];
 }
 
--(NSInteger) decimalPlaces
+-(int) decimalPlaces
 {
-    return self.numberTextField.text.length - self.dotLocation - 1;
+    if([self dotLocation]==-1)
+    {
+        return 0;
+    }
+    else
+    {
+        return self.numberTextField.text.length - self.dotLocation - 1;
+    }
 }
 
 - (void)didReceiveMemoryWarning
@@ -280,17 +330,9 @@
 		currentOperation = sender.tag;
         sender.enabled = NO;
         
-        
-        //self.numberTextField.text = [NSString stringWithFormat:@"*i%d",decimalPlacesToCalculateWith]; not working yet check http://stackoverflow.com/questions/13696188/dynamic-string-format-with-nsstring-stringwithformat
-        
-		self.numberTextField.text = [NSString stringWithFormat:@"%4f",firstOperand];
-		// The previous line does exactly the same as
-		// [self.numberTextField setText:[NSString stringWithFormat:@"%.1f",firstOperand]];
-        
-        
-
+        [self showValueWithAppropiateDecimalPlaces:firstOperand];
 	}
-    ScreenViewedSourceFloat=firstOperand;
+    screenViewSourcefloatInNSString=[NSString stringWithFormat:@"%f", firstOperand];
 	textFieldShouldBeCleared = YES;
     isDotPressed = NO;
 }
@@ -303,21 +345,30 @@
     if(currentOperation != OP_NOOP)
     {
         result = [self executeOperation:currentOperation withArgument:firstOperand andSecondArgument:result];
-        self.numberTextField.text = [NSString stringWithFormat:@"%.4f",result];
+        [self showValueWithAppropiateDecimalPlaces:result];
     }
     //put the result in the history
-    [history addValue:[NSNumber numberWithFloat:result]];
+    
+    [history addValue:[NSString stringWithFormat:@"%f", result]];
 
 	// Reset the internal state
 	currentOperation = OP_NOOP;
-    ScreenViewedSourceFloat=result;
+    screenViewSourcefloatInNSString=[NSString stringWithFormat:@"%f", result];
 	firstOperand = 0.;
     [self enableOperations];
     secondOperandIsBeingEntered=NO;
     [self updateArrowLabels];
+    textFieldShouldBeCleared=YES;
 //    sender.enabled = NO;
 
 }
+
+-(void)showValueWithAppropiateDecimalPlaces:(float) value
+{
+    NSString *dynFmt = [NSString stringWithFormat:@"%%.%if", decimalPlacesToCalculateWith];
+    self.numberTextField.text = [NSString stringWithFormat:dynFmt,value];
+}
+
 
 #pragma mark - arrows functions
 
@@ -326,8 +377,8 @@
     if([history getCount])
     {
         [history left];
-        NSString * result = (NSString*)[history getCurrent];
-        self.numberTextField.text = [NSString stringWithFormat:@"%@",result];
+        screenViewSourcefloatInNSString = (NSString*)[history getCurrent];
+        [self showValueWithAppropiateDecimalPlaces:[screenViewSourcefloatInNSString floatValue]];
         [self updateArrowLabels];
     }
 }
@@ -336,9 +387,8 @@
     if([history getCount])
     {
         [history right];
-        NSString * result = (NSString*)[history getCurrent];
-        self.numberTextField.text = [NSString stringWithFormat:@"%@",result];
-
+        screenViewSourcefloatInNSString = (NSString*)[history getCurrent];
+        [self showValueWithAppropiateDecimalPlaces:[screenViewSourcefloatInNSString floatValue]];
         [self updateArrowLabels];
     }
 }
@@ -362,9 +412,6 @@
     {
        [self.forward setTitle:[NSString stringWithFormat:@"→"] forState:UIControlStateNormal];
     }
-    
-    
-    
 }
 
 - (IBAction)numberEntered:(UIButton *)sender {
@@ -380,6 +427,7 @@
 		self.numberTextField.text = [NSString stringWithFormat:@"%i",sender.tag];
 		textFieldShouldBeCleared = NO;
 	}
+    
 	// otherwise, append the pressed number to what is already in the textField
 	else {
         
@@ -403,7 +451,8 @@
             self.numberTextField.text = [self.numberTextField.text stringByAppendingFormat:@"%i", sender.tag];
         }
 	}
-    ScreenViewedSourceFloat=[self.numberTextField.text floatValue];
+    decimalPlacesToCalculateWith=MAX([self decimalPlaces],decimalPlacesToCalculateWith);
+    screenViewSourcefloatInNSString=self.numberTextField.text;
 }
 
 // The parameter type id says that any object can be sender of this method.
@@ -420,10 +469,22 @@
 
 - (IBAction)dotPressed:(id)sender
 {
-    if(!isDotPressed)
+    if (textFieldShouldBeCleared)
+    {
+        self.numberTextField.text = @"";
+        textFieldShouldBeCleared = NO;
+    }
+    if(!isDotPressed&&[self dotLocation]==-1)
     {
         isDotPressed = YES;
-        self.numberTextField.text = [self.numberTextField.text stringByAppendingString:@"."];
+        if ([self.numberTextField.text  isEqual: @""])
+        {
+            self.numberTextField.text = @"0.";
+        }
+        else
+        {
+            self.numberTextField.text = [self.numberTextField.text stringByAppendingString:@"."];
+        }
     }
 }
 

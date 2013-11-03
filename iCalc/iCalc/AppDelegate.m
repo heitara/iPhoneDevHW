@@ -14,7 +14,7 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    
+     application.applicationSupportsShakeToEdit = YES;
     [[NSUserDefaults standardUserDefaults] registerDefaults:
      [NSDictionary dictionaryWithObjectsAndKeys: @"",@"CalulatorText",nil]]; //making the default value for CalculatorText to be empty string not nil
     [[NSUserDefaults standardUserDefaults] registerDefaults:

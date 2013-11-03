@@ -31,6 +31,9 @@
     int decimalPlacesToCalculateWith;
     NSString *screenViewSourcefloatInNSString;
     HistoryStack * history;
+    UIColor * defaultColor;
+    
+    BOOL opWasEntered;
 }
 
 @end
@@ -41,6 +44,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    opWasEntered = NO;
 	// Do any additional setup after loading the view, typically from a nib.
 	currentOperation = OP_NOOP;
 	textFieldShouldBeCleared = NO;
@@ -59,6 +63,9 @@
     NSLog(@"load from file");
     [history  loadFromFile];
     [self updateArrowLabels];
+    
+    defaultColor =  [[((UIButton *)[self.view viewWithTag:OP_ADD]) titleLabel] textColor];
+
 }
 
 -(void)addDefaultCenterNotifications
@@ -303,11 +310,11 @@
 
 - (void) enableOperations
 {
-    ((UIButton *)[self.view viewWithTag:OP_ADD]).enabled = YES;
-    ((UIButton *)[self.view viewWithTag:OP_SUB]).enabled = YES;
-    ((UIButton *)[self.view viewWithTag:OP_DIV]).enabled = YES;
-    ((UIButton *)[self.view viewWithTag:OP_MUL]).enabled = YES;
-    ((UIButton *)[self.view viewWithTag:OP_EQ]).enabled = YES;
+    [((UIButton *)[self.view viewWithTag:OP_ADD]) setTitleColor:defaultColor forState:UIControlStateNormal];
+    [((UIButton *)[self.view viewWithTag:OP_SUB]) setTitleColor:defaultColor forState:UIControlStateNormal];
+    [((UIButton *)[self.view viewWithTag:OP_DIV]) setTitleColor:defaultColor forState:UIControlStateNormal];
+    [((UIButton *)[self.view viewWithTag:OP_MUL]) setTitleColor:defaultColor forState:UIControlStateNormal];
+    [((UIButton *)[self.view viewWithTag:OP_EQ]) setTitleColor:defaultColor forState:UIControlStateNormal];
 }
 
 #pragma mark - UI response operations
@@ -317,7 +324,7 @@
  */
 - (IBAction)operationButtonPressed:(UIButton *)sender {
 	// Have a look at the tag-property of the buttons calling this method
-	
+	opWasEntered = YES;
 	// Once a button is pressed, we check if the first operand is zero
 	// If so, we can start a new calculation, otherwise, we replace the first operand with the result of the operation
 	if (firstOperand == 0.)
@@ -325,8 +332,7 @@
 		firstOperand = [self.numberTextField.text floatValue];
         [self enableOperations];
 		currentOperation = sender.tag;
-        sender.enabled = NO;
-        
+        [sender setTitleColor:[UIColor grayColor] forState:UIControlStateNormal];
         if(isDotPressed)
         {
             digits = self.numberTextField.text.length - 2;
@@ -338,7 +344,7 @@
 		firstOperand = [self executeOperation:currentOperation withArgument:firstOperand andSecondArgument:[self.numberTextField.text floatValue]];
         [self enableOperations];
 		currentOperation = sender.tag;
-        sender.enabled = NO;
+        [sender setTitleColor:[UIColor grayColor] forState:UIControlStateNormal];
         
         [self showValueWithAppropiateDecimalPlaces:firstOperand];
 	}
@@ -350,15 +356,15 @@
 - (IBAction)resultButtonPressed:(UIButton *)sender {
 	
 	// Just calculate the result
-    
+
 	float result = [self.numberTextField.text floatValue];
-    if(currentOperation != OP_NOOP)
+    if(currentOperation != OP_NOOP && !opWasEntered)
     {
         result = [self executeOperation:currentOperation withArgument:firstOperand andSecondArgument:result];
         [self showValueWithAppropiateDecimalPlaces:result];
     }
     //put the result in the history
-    
+    opWasEntered = NO;
     [history addValue:[NSString stringWithFormat:@"%f", result]];
 
 	// Reset the internal state
@@ -369,7 +375,7 @@
     secondOperandIsBeingEntered=NO;
     [self updateArrowLabels];
     textFieldShouldBeCleared=YES;
-//    sender.enabled = NO;
+
 
 }
 
@@ -384,6 +390,7 @@
 
 - (IBAction)backPressed:(id)sender
 {
+    opWasEntered = NO;
     if([self.back.titleLabel.text isEqual:@"←1"])
     {
         return; // handles some weird rounding behaviour that occurs when changing the decimal places and pressing the back button
@@ -399,6 +406,7 @@
 
 - (IBAction)forwardPressed:(id)sender {
     
+    opWasEntered = NO;
  /*   if([self.forward.titleLabel.text isEqual:@"→"]) //TODO needs to be implemented
     {
         return; // handles some weird rounding behaviour that occurs when changing the decimal places and pressing the forward button
@@ -434,7 +442,7 @@
 }
 
 - (IBAction)numberEntered:(UIButton *)sender {
-    
+    opWasEntered = NO;
     if(currentOperation != OP_NOOP)
     {
         secondOperandIsBeingEntered=YES;
@@ -477,6 +485,7 @@
 // The parameter type id says that any object can be sender of this method.
 // As we do not need the pointer to the clear button here, it is not really important.
 - (IBAction)clearDisplay:(id)sender {
+    opWasEntered = NO;
 	firstOperand = 0;
 	currentOperation = OP_NOOP;
 	self.numberTextField.text = @"0";
@@ -488,6 +497,7 @@
 
 - (IBAction)dotPressed:(id)sender
 {
+    opWasEntered = NO;
     if (textFieldShouldBeCleared)
     {
         self.numberTextField.text = @"";
@@ -535,4 +545,30 @@
 {
     return YES;
 }
+
+#pragma mark - shake the device methods
+
+-(BOOL)canBecomeFirstResponder {
+    return YES;
+}
+
+-(void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    [self becomeFirstResponder];
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [self resignFirstResponder];
+    [super viewWillDisappear:animated];
+}
+
+
+- (void)motionEnded:(UIEventSubtype)motion withEvent:(UIEvent *)event
+{
+    if (motion == UIEventSubtypeMotionShake)
+    {
+        [self clearDisplay:nil];
+    }
+}
+
 @end

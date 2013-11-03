@@ -227,8 +227,19 @@
 -(void) addDecimalPlace
 {
     //TODO maybe rounding
-    if(self.numberTextField.text.length==screenViewSourcefloatInNSString.length)
+    if(self.numberTextField.text.length>=screenViewSourcefloatInNSString.length)
     {
+        if([self dotLocation]!=-1)
+        {
+            [self.numberTextField setText:[NSString stringWithFormat:@"%@%@",self.numberTextField.text ,@"0"]];
+           // [screenViewSourcefloatInNSString appendString:@"0"];
+        }
+        else
+        {
+            [self.numberTextField setText:[NSString stringWithFormat:@"%@%@",self.numberTextField.text ,@".0"]];
+            //[screenViewSourcefloatInNSString appendString:@".0"];
+        }
+        decimalPlacesToCalculateWith=[self decimalPlaces];
         return;
     }
     
@@ -247,6 +258,7 @@
         [self.numberTextField setText:[screenViewSourcefloatInNSString stringByPaddingToLength:self.numberTextField.text.length+1 withString:@""  startingAtIndex:0]];
     decimalPlacesToCalculateWith=[self decimalPlaces];
 }
+
 -(void) removeDecimalPlace
 {
     if([self dotLocation]!=-1)

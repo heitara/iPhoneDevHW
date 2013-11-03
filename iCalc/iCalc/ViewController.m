@@ -384,6 +384,10 @@
 
 - (IBAction)backPressed:(id)sender
 {
+    if([self.back.titleLabel.text isEqual:@"←1"])
+    {
+        return; // handles some weird rounding behaviour that occurs when changing the decimal places and pressing the back button
+    }
     if([history getCount])
     {
         [history left];
@@ -394,6 +398,11 @@
 }
 
 - (IBAction)forwardPressed:(id)sender {
+    
+ /*   if([self.forward.titleLabel.text isEqual:@"→"]) //TODO needs to be implemented
+    {
+        return; // handles some weird rounding behaviour that occurs when changing the decimal places and pressing the forward button
+    }*/
     if([history getCount])
     {
         [history right];

@@ -365,7 +365,10 @@
     }
     //put the result in the history
     opWasEntered = NO;
-    [history addValue:[NSString stringWithFormat:@"%f", result]];
+    if(currentOperation != OP_NOOP)
+    {
+        [history addValue:[NSString stringWithFormat:@"%f", result]];
+    }
 
 	// Reset the internal state
 	currentOperation = OP_NOOP;

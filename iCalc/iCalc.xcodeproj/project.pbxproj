@@ -19,6 +19,7 @@
 		4C6CBA8A161F28DD0020BFF7 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4C6CBA89161F28DD0020BFF7 /* Default-568h@2x.png */; };
 		4C6CBA8D161F28DD0020BFF7 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C6CBA8C161F28DD0020BFF7 /* ViewController.m */; };
 		4C6CBA90161F28DD0020BFF7 /* ViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4C6CBA8E161F28DD0020BFF7 /* ViewController.xib */; };
+		D9F73EA0183143A10029A448 /* BasicCalculator.m in Sources */ = {isa = PBXBuildFile; fileRef = D9F73E9F183143A10029A448 /* BasicCalculator.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +41,8 @@
 		4C6CBA8B161F28DD0020BFF7 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		4C6CBA8C161F28DD0020BFF7 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		4C6CBA8F161F28DD0020BFF7 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/ViewController.xib; sourceTree = "<group>"; };
+		D9F73E9E183143A10029A448 /* BasicCalculator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BasicCalculator.h; sourceTree = "<group>"; };
+		D9F73E9F183143A10029A448 /* BasicCalculator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BasicCalculator.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,14 +89,12 @@
 		4C6CBA79161F28DD0020BFF7 /* iCalc */ = {
 			isa = PBXGroup;
 			children = (
+				D9F73EA3183154C50029A448 /* Model */,
 				4C6CBA82161F28DD0020BFF7 /* AppDelegate.h */,
 				4C6CBA83161F28DD0020BFF7 /* AppDelegate.m */,
-				4C6CBA8B161F28DD0020BFF7 /* ViewController.h */,
-				4C6CBA8C161F28DD0020BFF7 /* ViewController.m */,
-				4C6CBA8E161F28DD0020BFF7 /* ViewController.xib */,
+				D9F73EA1183154B20029A448 /* Controller */,
+				D9F73EA2183154BC0029A448 /* View */,
 				4C6CBA7A161F28DD0020BFF7 /* Supporting Files */,
-				20A09600182404E10040A8FE /* HistoryStack.h */,
-				20A09601182404E10040A8FE /* HistoryStack.m */,
 			);
 			path = iCalc;
 			sourceTree = "<group>";
@@ -110,6 +111,34 @@
 				4C6CBA89161F28DD0020BFF7 /* Default-568h@2x.png */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		D9F73EA1183154B20029A448 /* Controller */ = {
+			isa = PBXGroup;
+			children = (
+				4C6CBA8B161F28DD0020BFF7 /* ViewController.h */,
+				4C6CBA8C161F28DD0020BFF7 /* ViewController.m */,
+			);
+			name = Controller;
+			sourceTree = "<group>";
+		};
+		D9F73EA2183154BC0029A448 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				4C6CBA8E161F28DD0020BFF7 /* ViewController.xib */,
+			);
+			name = View;
+			sourceTree = "<group>";
+		};
+		D9F73EA3183154C50029A448 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				D9F73E9E183143A10029A448 /* BasicCalculator.h */,
+				D9F73E9F183143A10029A448 /* BasicCalculator.m */,
+				20A09600182404E10040A8FE /* HistoryStack.h */,
+				20A09601182404E10040A8FE /* HistoryStack.m */,
+			);
+			name = Model;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -180,6 +209,7 @@
 			files = (
 				4C6CBA80161F28DD0020BFF7 /* main.m in Sources */,
 				20A09602182404E10040A8FE /* HistoryStack.m in Sources */,
+				D9F73EA0183143A10029A448 /* BasicCalculator.m in Sources */,
 				4C6CBA84161F28DD0020BFF7 /* AppDelegate.m in Sources */,
 				4C6CBA8D161F28DD0020BFF7 /* ViewController.m in Sources */,
 			);

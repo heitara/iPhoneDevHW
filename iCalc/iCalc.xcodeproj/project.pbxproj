@@ -89,11 +89,11 @@
 		4C6CBA79161F28DD0020BFF7 /* iCalc */ = {
 			isa = PBXGroup;
 			children = (
-				D9F73EA3183154C50029A448 /* Model */,
 				4C6CBA82161F28DD0020BFF7 /* AppDelegate.h */,
 				4C6CBA83161F28DD0020BFF7 /* AppDelegate.m */,
-				D9F73EA1183154B20029A448 /* Controller */,
+				D9F73EA3183154C50029A448 /* Model */,
 				D9F73EA2183154BC0029A448 /* View */,
+				D9F73EA1183154B20029A448 /* Controller */,
 				4C6CBA7A161F28DD0020BFF7 /* Supporting Files */,
 			);
 			path = iCalc;

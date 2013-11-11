@@ -40,6 +40,12 @@
 
 @implementation ViewController
 
+- (void)operationDidCompleteWithResult:(NSNumber*)result
+{
+    self.numberTextField.text = [result stringValue];
+}
+
+
 #pragma mark - Object Lifecycle
 - (void)viewDidLoad
 {

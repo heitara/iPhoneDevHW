@@ -270,7 +270,6 @@
 {
     if([self dotLocation]!=-1)
     {
-        //decimalPlacesToCalculateWith=MAX([self decimalPlaces],decimalPlacesToCalculateWith);
         if([self decimalPlaces]==1) // so remove last number and .
         {
            [self.numberTextField setText:[self.numberTextField.text stringByPaddingToLength:self.numberTextField.text.length-2 withString:@""  startingAtIndex:0]];
@@ -410,10 +409,6 @@
 - (IBAction)forwardPressed:(id)sender {
     
     opWasEntered = NO;
- /*   if([self.forward.titleLabel.text isEqual:@"→"]) //TODO needs to be implemented
-    {
-        return; // handles some weird rounding behaviour that occurs when changing the decimal places and pressing the forward button
-    }*/
     if([history getCount])
     {
         [history right];

@@ -141,8 +141,6 @@
 
 -(void) loadFromFile
 {
-    
-    
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentsDirectory = [paths objectAtIndex:0];
     //2) Create the full file path by appending the desired file name

@@ -11,12 +11,14 @@
 
 //This is the set of operations we support
 typedef enum BCOperator : NSUInteger {
-	BCOperatorNoOperation,
-	BCOperatorAddition,
-	BCOperatorSubtraction,
-	BCOperatorMultiplication,
-	BCOperatorDivision
+	BCOperatorNoOperation = 201,
+	BCOperatorAddition = 202,
+	BCOperatorSubtraction = 203,
+	BCOperatorMultiplication = 204,
+	BCOperatorDivision = 205
 } BCOperator;
+//BCOperatorNoOperation is set as the default value for the Operator stored in NSUserDefault
+//The rest of the operations number corresponds to their tag in the Xib
 
 @protocol BasicCalculatorDelegate <NSObject>    // Task 1.2 make ViewController comply with this delegate
 
@@ -45,7 +47,9 @@ typedef enum BCOperator : NSUInteger {
 @property (strong) NSNumber *lastOperand;
 @property (strong) NSNumber *lastResult;        // Task 1.3: Use this property for KVO
 
+
 - (void)setFirstOperand:(NSNumber*)anOperand;
+- (NSNumber *)getOperand;
 - (void)performOperation:(BCOperator)operation withOperand:(NSNumber*)operand;
 - (void)reset;
 

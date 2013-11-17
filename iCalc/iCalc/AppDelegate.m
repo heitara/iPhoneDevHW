@@ -19,6 +19,8 @@
      [NSDictionary dictionaryWithObjectsAndKeys: @"",@"CalulatorText",nil]]; //making the default value for CalculatorText to be empty string not nil
     [[NSUserDefaults standardUserDefaults] registerDefaults:
      [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithInteger:2] ,@"CalulatorDecimal",nil]]; //making the default value for CalulatorDecimal to be 2
+    [[NSUserDefaults standardUserDefaults] registerDefaults:
+     [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithInteger:201] ,@"Operator",nil]]; //making the default value for CalulatorDecimal to be 2
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
 	self.viewController = [[ViewController alloc] initWithNibName:@"ViewController" bundle:nil];

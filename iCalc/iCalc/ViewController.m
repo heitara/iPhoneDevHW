@@ -6,88 +6,94 @@
 //  Copyright (c) 2012 Florian Heller. All rights reserved.
 //
 
-// Define operation identifiers
-#define OP_NOOP	0
-#define OP_ADD	11
-#define OP_SUB	12
-#define OP_MUL	13
-#define OP_DIV	14
-#define OP_EQ	100
-
-
 #import "ViewController.h"
-#import "HistoryStack.h"
 
 @interface ViewController ()
 {
 	// The following variables do not need to be exposed in the public interface
 	// that's why we define them in this class extension in the implementation file.
-	float firstOperand;
-	unsigned char currentOperation;
 	BOOL textFieldShouldBeCleared;
-    BOOL isDotPressed;
-    BOOL secondOperandIsBeingEntered;
     int digits;
     int decimalPlacesToCalculateWith;
     NSString *screenViewSourcefloatInNSString;
-    HistoryStack * history;
     UIColor * defaultColor;
-    
-    BOOL opWasEntered;
+    BCOperator currentOperation;
+    BasicCalculator *calcLogic;
+    ResultManager *resultManager;
 }
 
 @end
 
 @implementation ViewController
 
-- (void)operationDidCompleteWithResult:(NSNumber*)result
-{
-    self.numberTextField.text = [result stringValue];
-}
 
 
 #pragma mark - Object Lifecycle
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    opWasEntered = NO;
+    
 	// Do any additional setup after loading the view, typically from a nib.
-	currentOperation = OP_NOOP;
+    calcLogic =[[BasicCalculator alloc] init];
+    calcLogic.delegate=self;
+    resultManager=[[ResultManager alloc] init];
+    currentOperation = BCOperatorNoOperation;
 	textFieldShouldBeCleared = NO;
-    isDotPressed = NO;
     digits = 0;
     decimalPlacesToCalculateWith=1;
-    secondOperandIsBeingEntered=NO;
+    defaultColor =  [[((UIButton *)[self.view viewWithTag:BCOperatorAddition]) titleLabel] textColor];
     
-    //[[NSUserDefaults standardUserDefaults] setPersistentDomain:[NSDictionary dictionary] forName:[[NSBundle mainBundle] bundleIdentifier]];
-    history = [[HistoryStack alloc] init];
+    
+    [[NSUserDefaults standardUserDefaults] setPersistentDomain:[NSDictionary dictionary] forName:[[NSBundle mainBundle] bundleIdentifier]];//deletes stored values
+    //TODO comment the line above
     
     [self handleGestures];
     [self instantiateAllSavedValues];
-
-    [self addDefaultCenterNotifications];
-    NSLog(@"load from file");
-    [history  loadFromFile];
-    [self updateArrowLabels];
+    [self addDefaultObservers];
     
-    defaultColor =  [[((UIButton *)[self.view viewWithTag:OP_ADD]) titleLabel] textColor];
-
+    
+    [self updateArrowLabels];
 }
 
--(void)addDefaultCenterNotifications
+
+- (void)operationDidCompleteWithResult:(NSNumber*)result
 {
+    screenViewSourcefloatInNSString=[NSString stringWithFormat:@"%@", result];
+    [self showValueWithAppropiateDecimalPlaces:[result floatValue]];
     
-    UIApplication *app = [UIApplication sharedApplication];
     
+    // Reset the internal state
+    currentOperation = BCOperatorNoOperation;
+    [self enableOperations];
+    [self updateArrowLabels];
+    textFieldShouldBeCleared=YES;
+}
+
+-(BOOL) operationPressed
+{
+    if(currentOperation!=BCOperatorNoOperation)
+    {
+        return YES;
+    }
+    else
+    {
+        return NO;
+    }
+}
+
+-(void)addDefaultObservers
+{
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(applicationDidEnterBackground:)
                                                  name:UIApplicationDidEnterBackgroundNotification
-                                               object:app];
-
+                                               object:[UIApplication sharedApplication]];
     [[NSNotificationCenter defaultCenter] addObserver: self
                                              selector: @selector(saveAndCleanup)
                                                  name: @"handleCleanup"
                                                object: nil];
+    //[calcLogic addObserver:self forKeyPath:@"lastResult" options:NSKeyValueObservingOptionNew context:NULL];
+    [calcLogic addObserver:resultManager forKeyPath:@"lastResult" options:NSKeyValueObservingOptionNew context:NULL];
+
 }
 
 -(void)handleGestures
@@ -105,41 +111,18 @@
     [self.view addGestureRecognizer:rightSwipeRecognizer];
 }
 
-
--(int) mapOperationToTag:(unsigned char) opr
-{
-    switch (opr)
-    {
-        case OP_ADD:
-            return 11;
-            break;
-        case OP_SUB:
-            return 12;
-            break;
-        case OP_MUL:
-            return 13;
-            break;
-        case OP_DIV:
-            return 14;
-            break;
-        case OP_EQ:
-            return 100;
-            break;
-            
-        default:
-            return 0;
-            break;
-    }
-}
-
 -(void) instantiateAllSavedValues
 {
-    if([[NSUserDefaults standardUserDefaults] integerForKey:@"Operator"]!=OP_NOOP)
+    if([[NSUserDefaults standardUserDefaults] integerForKey:@"Operator"]!=BCOperatorNoOperation)
     {
-        UIButton *button= (UIButton *)[self.view viewWithTag:[self mapOperationToTag:[[NSUserDefaults standardUserDefaults] integerForKey:@"Operator"]]];
+        int operator =[[NSUserDefaults standardUserDefaults] integerForKey:@"Operator"];
+        UIButton *button= (UIButton *)[self.view viewWithTag:operator];
         [self operationButtonPressed:button];
     }
-    firstOperand=[[NSUserDefaults standardUserDefaults] integerForKey:@"FirstOperandValue"];
+    
+    NSInteger *storedValue =[[NSUserDefaults standardUserDefaults] integerForKey:@"FirstOperandValue"];
+    [calcLogic setFirstOperand:[NSNumber numberWithInteger:storedValue]];
+    
     int *secondButtonWasSet=[[NSUserDefaults standardUserDefaults] integerForKey:@"SecondOperandSet"];
     if(secondButtonWasSet==0 )//|| secondButtonWasSet==NULL
     {
@@ -149,11 +132,7 @@
     {
         self.numberTextField.text=[NSString stringWithFormat:@"%d",[[NSUserDefaults standardUserDefaults] integerForKey:@"SecondOperandValue"]];
     }
-   
-    if([self dotLocation]!=-1)
-    {
-        isDotPressed=YES;
-    }
+    
     
     screenViewSourcefloatInNSString=self.numberTextField.text;
     decimalPlacesToCalculateWith=[[NSUserDefaults standardUserDefaults] integerForKey:@"CalulatorDecimal"];
@@ -161,8 +140,7 @@
 
 -(void)applicationDidEnterBackground:(UIApplication *) application
 {
-    NSLog(@"save to file");
-    [history  saveToFile];
+    [resultManager saveToFile];
 }
 
 - (void)handleGesture:(UIGestureRecognizer *)gestureRecognizer;
@@ -203,26 +181,26 @@
 
 -(void)saveAndCleanup
 {
-   //[[NSUserDefaults standardUserDefaults] setObject:self.numberTextField.text
-     //                                         forKey:@"CalulatorText"];
+    //[[NSUserDefaults standardUserDefaults] setObject:self.numberTextField.text
+    //                                         forKey:@"CalulatorText"];
     [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithInteger:decimalPlacesToCalculateWith]
                                               forKey:@"CalulatorDecimal"];
     
-    if(currentOperation != OP_NOOP)
-    {
-        [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithFloat:firstOperand]
+    
+    [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithUnsignedChar:currentOperation]
+                                              forKey:@"Operator"];
+    
+    if(currentOperation != BCOperatorNoOperation)
+    {//if currentOperation is not empty we know that there first Operand is stored in getOperand
+        [[NSUserDefaults standardUserDefaults] setObject:[calcLogic getOperand]
                                                   forKey:@"FirstOperandValue"];
-        [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithUnsignedChar:currentOperation]
-                                                  forKey:@"Operator"];
     }
     else
     {
         [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithFloat:[self.numberTextField.text  floatValue]]forKey:@"FirstOperandValue"];
-        [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithUnsignedChar:OP_NOOP]
-                                                  forKey:@"Operator"];
     }
     
-    if(secondOperandIsBeingEntered)
+    if(currentOperation != BCOperatorNoOperation && !textFieldShouldBeCleared)
     {
         [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithFloat:[self.numberTextField.text floatValue]]
                                                   forKey:@"SecondOperandValue"];
@@ -245,13 +223,13 @@
         if([self dotLocation]!=-1)
         {
             [self.numberTextField setText:[NSString stringWithFormat:@"%@%@",self.numberTextField.text ,@"0"]];
-           // [screenViewSourcefloatInNSString appendString:@"0"];
+
         }
         else
         {
             [self.numberTextField setText:[NSString stringWithFormat:@"%@%@",self.numberTextField.text ,@".0"]];
-            //[screenViewSourcefloatInNSString appendString:@".0"];
         }
+        
         decimalPlacesToCalculateWith=[self decimalPlaces];
         return;
     }
@@ -261,14 +239,10 @@
     if([self dotLocation]==-1)
     {
         [self.numberTextField setText:[NSString stringWithFormat:@"%@%@",self.numberTextField.text ,@"."]];
-        //decimalPlacesToCalculateWith=1;
-    }
-    else
-    {
-      //  decimalPlacesToCalculateWith=MAX([self decimalPlaces]+1,decimalPlacesToCalculateWith);
     }
     
-        [self.numberTextField setText:[screenViewSourcefloatInNSString stringByPaddingToLength:self.numberTextField.text.length+1 withString:@""  startingAtIndex:0]];
+    [self.numberTextField setText:[screenViewSourcefloatInNSString stringByPaddingToLength:self.numberTextField.text.length+1 withString:@""  startingAtIndex:0]];
+    
     decimalPlacesToCalculateWith=[self decimalPlaces];
 }
 
@@ -278,7 +252,7 @@
     {
         if([self decimalPlaces]==1) // so remove last number and .
         {
-           [self.numberTextField setText:[self.numberTextField.text stringByPaddingToLength:self.numberTextField.text.length-2 withString:@""  startingAtIndex:0]];
+            [self.numberTextField setText:[self.numberTextField.text stringByPaddingToLength:self.numberTextField.text.length-2 withString:@""  startingAtIndex:0]];
             decimalPlacesToCalculateWith=0;
         }
         else  //remove only last number
@@ -286,7 +260,7 @@
             [self.numberTextField setText:[self.numberTextField.text stringByPaddingToLength:self.numberTextField.text.length-1 withString:@""  startingAtIndex:0]];
             if(decimalPlacesToCalculateWith!=0)
             {
-                 //decimalPlacesToCalculateWith=MAX([self decimalPlaces]-1,decimalPlacesToCalculateWith);
+                //decimalPlacesToCalculateWith=MAX([self decimalPlaces]-1,decimalPlacesToCalculateWith);
             }
         }
     }
@@ -315,76 +289,58 @@
 
 - (void) enableOperations
 {
-    [((UIButton *)[self.view viewWithTag:OP_ADD]) setTitleColor:defaultColor forState:UIControlStateNormal];
-    [((UIButton *)[self.view viewWithTag:OP_SUB]) setTitleColor:defaultColor forState:UIControlStateNormal];
-    [((UIButton *)[self.view viewWithTag:OP_DIV]) setTitleColor:defaultColor forState:UIControlStateNormal];
-    [((UIButton *)[self.view viewWithTag:OP_MUL]) setTitleColor:defaultColor forState:UIControlStateNormal];
-    [((UIButton *)[self.view viewWithTag:OP_EQ]) setTitleColor:defaultColor forState:UIControlStateNormal];
+    [((UIButton *)[self.view viewWithTag:BCOperatorAddition]) setTitleColor:defaultColor forState:UIControlStateNormal];
+    [((UIButton *)[self.view viewWithTag:BCOperatorSubtraction]) setTitleColor:defaultColor forState:UIControlStateNormal];
+    [((UIButton *)[self.view viewWithTag:BCOperatorDivision]) setTitleColor:defaultColor forState:UIControlStateNormal];
+    [((UIButton *)[self.view viewWithTag:BCOperatorMultiplication]) setTitleColor:defaultColor forState:UIControlStateNormal];
 }
 
 #pragma mark - UI response operations
 /*	This method get's called whenever an operation button is pressed
- *	The sender object is a pointer to the calling button in this case. 
+ *	The sender object is a pointer to the calling button in this case.
  *	This way, you can easily change the buttons color or other properties
  */
 - (IBAction)operationButtonPressed:(UIButton *)sender {
 	// Have a look at the tag-property of the buttons calling this method
-	opWasEntered = YES;
 	// Once a button is pressed, we check if the first operand is zero
 	// If so, we can start a new calculation, otherwise, we replace the first operand with the result of the operation
-	if (firstOperand == 0.)
+    if(!(textFieldShouldBeCleared && currentOperation != BCOperatorNoOperation))
+    {
+    
+    
+	if (currentOperation==BCOperatorNoOperation )
 	{
-		firstOperand = [self.numberTextField.text floatValue];
-        [self enableOperations];
-		currentOperation = sender.tag;
-        [sender setTitleColor:[UIColor grayColor] forState:UIControlStateNormal];
-        if(isDotPressed)
+		[calcLogic setFirstOperand:[NSNumber numberWithFloat:[self.numberTextField.text floatValue]]];
+		
+        if([self dotLocation]==-1)
         {
-            digits = self.numberTextField.text.length - 2;
+            digits = self.numberTextField.text.length - 2; //TODO understand
         }
-
 	}
 	else
 	{
-		firstOperand = [self executeOperation:currentOperation withArgument:firstOperand andSecondArgument:[self.numberTextField.text floatValue]];
-        [self enableOperations];
-		currentOperation = sender.tag;
-        [sender setTitleColor:[UIColor grayColor] forState:UIControlStateNormal];
-        
-        [self showValueWithAppropiateDecimalPlaces:firstOperand];
+		[self executeOperation:currentOperation withArgument:[self.numberTextField.text floatValue]];
 	}
-    screenViewSourcefloatInNSString=[NSString stringWithFormat:@"%f", firstOperand];
-	textFieldShouldBeCleared = YES;
-    isDotPressed = NO;
+        
+        textFieldShouldBeCleared = YES;
+    }
+    [self enableOperations];
+    [sender setTitleColor:[UIColor grayColor] forState:UIControlStateNormal];
+    currentOperation = sender.tag;
+    
 }
 
-- (IBAction)resultButtonPressed:(UIButton *)sender {
-	
-	// Just calculate the result
+-(void) observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *) context
+{
+      //not used here
+}
 
-	float result = [self.numberTextField.text floatValue];
-    if(currentOperation != OP_NOOP && !opWasEntered)
+- (IBAction)resultButtonPressed:(UIButton *)sender
+{
+    if(currentOperation != BCOperatorNoOperation && !textFieldShouldBeCleared)//second Operand is Fully Entered
     {
-        result = [self executeOperation:currentOperation withArgument:firstOperand andSecondArgument:result];
-        [self showValueWithAppropiateDecimalPlaces:result];
+        [self executeOperation:currentOperation withArgument:[self.numberTextField.text floatValue]];
     }
-    //put the result in the history
-    opWasEntered = NO;
-    if(currentOperation != OP_NOOP)
-    {
-        [history addValue:[NSString stringWithFormat:@"%f", result]];
-    }
-
-	// Reset the internal state
-	currentOperation = OP_NOOP;
-    screenViewSourcefloatInNSString=[NSString stringWithFormat:@"%f", result];
-	firstOperand = 0.;
-    [self enableOperations];
-    secondOperandIsBeingEntered=NO;
-    [self updateArrowLabels];
-    textFieldShouldBeCleared=YES;
-
-
 }
 
 -(void)showValueWithAppropiateDecimalPlaces:(float) value
@@ -398,40 +354,35 @@
 
 - (IBAction)backPressed:(id)sender
 {
-    opWasEntered = NO;
     if([self.back.titleLabel.text isEqual:@"←1"])
     {
         return; // handles some weird rounding behaviour that occurs when changing the decimal places and pressing the back button
     }
-    if([history getCount])
-    {
-        [history left];
-        screenViewSourcefloatInNSString = (NSString*)[history getCurrent];
-        [self showValueWithAppropiateDecimalPlaces:[screenViewSourcefloatInNSString floatValue]];
-        [self updateArrowLabels];
-    }
+    
+    screenViewSourcefloatInNSString = [resultManager decrementCounterAndReturnStoredValue];
+    [self showValueWithAppropiateDecimalPlaces:[screenViewSourcefloatInNSString floatValue]];
+    [self updateArrowLabels];
+    
 }
 
 - (IBAction)forwardPressed:(id)sender {
     
-    opWasEntered = NO;
-    if([history getCount])
-    {
-        [history right];
-        screenViewSourcefloatInNSString = (NSString*)[history getCurrent];
+        screenViewSourcefloatInNSString = [resultManager incrementCounterAndReturnStoredValue];
         [self showValueWithAppropiateDecimalPlaces:[screenViewSourcefloatInNSString floatValue]];
         [self updateArrowLabels];
-    }
+    
 }
 
 -(void) updateArrowLabels
 {
-    int left = [history getLeftSize];
-    int right = [history getRightSize];
+    int left = [resultManager getLeftSize];
+    int right = [resultManager getRightSize];
+    
     if(left)
     {
         [self.back setTitle:[NSString stringWithFormat:@"←%i", left] forState:UIControlStateNormal];
-    } else
+    }
+    else
     {
         [self.back setTitle:[NSString stringWithFormat:@"←"] forState:UIControlStateNormal];
     }
@@ -441,17 +392,12 @@
         [self.forward setTitle:[NSString stringWithFormat:@"%i→", right] forState:UIControlStateNormal];
     } else
     {
-       [self.forward setTitle:[NSString stringWithFormat:@"→"] forState:UIControlStateNormal];
+        [self.forward setTitle:[NSString stringWithFormat:@"→"] forState:UIControlStateNormal];
     }
 }
 
-- (IBAction)numberEntered:(UIButton *)sender {
-    opWasEntered = NO;
-    if(currentOperation != OP_NOOP)
-    {
-        secondOperandIsBeingEntered=YES;
-    }
-    
+- (IBAction)numberEntered:(UIButton *)sender
+{
 	// If the textField is to be cleared, just replace it with the pressed number
 	if (textFieldShouldBeCleared)
 	{
@@ -464,18 +410,12 @@
         
         BOOL isStringEqualToZero = [@"0" isEqualToString:self.numberTextField.text];
         
-        if(isStringEqualToZero && !isDotPressed)
+        if(isStringEqualToZero && [self dotLocation]==-1)
         {
-            //do nothing
             if(sender.tag != 0)
             {
-                 self.numberTextField.text = [NSString stringWithFormat:@"%i", sender.tag];
+                self.numberTextField.text = [NSString stringWithFormat:@"%i", sender.tag];
             }
-//            else
-//            {
-//                //zero, do nothing
-//            }
-            
         }
         else
         {
@@ -489,27 +429,22 @@
 // The parameter type id says that any object can be sender of this method.
 // As we do not need the pointer to the clear button here, it is not really important.
 - (IBAction)clearDisplay:(id)sender {
-    opWasEntered = NO;
-	firstOperand = 0;
-	currentOperation = OP_NOOP;
+    [calcLogic reset];
+	currentOperation = BCOperatorNoOperation;
 	self.numberTextField.text = @"0";
     [self enableOperations];
-    isDotPressed = NO;
     digits = 0;
-    secondOperandIsBeingEntered=NO;
 }
 
 - (IBAction)dotPressed:(id)sender
 {
-    opWasEntered = NO;
     if (textFieldShouldBeCleared)
     {
         self.numberTextField.text = @"";
         textFieldShouldBeCleared = NO;
     }
-    if([self dotLocation]==-1)//!isDotPressed removed because not always working...
+    if([self dotLocation]==-1)
     {
-        isDotPressed = YES;
         if ([self.numberTextField.text  isEqual: @""])
         {
             self.numberTextField.text = @"0.";
@@ -522,27 +457,11 @@
 }
 
 #pragma mark - General Methods
-// This method returns the result of the specified operation
+// This method computes the result of the specified operation
 // It is placed here since it is needed in two other methods
-- (float)executeOperation:(char)operation withArgument:(float)firstArgument andSecondArgument:(float)secondArgument;
+- (void)executeOperation:(char)operation withArgument:(float)secondArgument
 {
-	switch (operation) {
-		case OP_ADD:
-			return firstArgument + secondArgument;
-			break;
-		case OP_SUB:
-			return firstArgument - secondArgument;
-            
-        case OP_DIV:
-            if(secondArgument == 0) return 0;
-			return firstArgument / secondArgument;
-            
-        case OP_MUL:
-            return firstArgument * secondArgument;
-		default:
-			return NAN;
-			break;
-	}
+    [calcLogic performOperation:currentOperation withOperand:[NSNumber numberWithFloat:secondArgument]];
 }
 
 - (BOOL)prefersStatusBarHidden;

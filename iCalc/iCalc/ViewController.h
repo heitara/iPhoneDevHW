@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "BasicCalculator.h"
-
+#import "ResultManager.h"
 @interface ViewController : UIViewController<BasicCalculatorDelegate>
 
 @property (weak, nonatomic) IBOutlet UITextField *numberTextField;
@@ -19,6 +19,8 @@
 - (IBAction)clearDisplay:(id)sender;
 - (IBAction)dotPressed:(id)sender;
 - (void)operationDidCompleteWithResult:(NSNumber*)result;
+
+
 
 @property (weak, nonatomic) IBOutlet UIButton *back;
 @property (weak, nonatomic) IBOutlet UIButton *forward;

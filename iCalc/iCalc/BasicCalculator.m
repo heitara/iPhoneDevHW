@@ -7,8 +7,17 @@
 //  Copyright 2010 RWTH Aachen University. All rights reserved.
 //
 
+
 #import "BasicCalculator.h"
 
+@interface BasicCalculator ()
+{
+	// The following variables do not need to be exposed in the public interface
+	// that's why we define them in this class extension in the implementation file.
+	
+}
+
+@end
 
 #pragma mark Object Lifecycle
 @implementation BasicCalculator
@@ -21,6 +30,7 @@
 		self.lastOperand = [NSNumber numberWithInt:0];
 		self.delegate = nil;
 		self.rememberLastResult = YES;
+        
 	}
 	return self;
 }
@@ -41,6 +51,11 @@
 	self.lastOperand = anOperand;
 }
 
+- (NSNumber *)getOperand
+{
+	return self.lastOperand;
+}
+
 // This method performs an operation with the given operation and the second operand. 
 // After the operation is performed, the result is written to lastOperand 
 - (void)performOperation:(BCOperator)operation withOperand:(NSNumber*)operand;
@@ -49,9 +64,27 @@
 	if (operation == BCOperatorAddition)
 	{
 		result = [NSNumber numberWithFloat:([self.lastOperand floatValue] + [operand floatValue])]; //this is autoreleased
-		self.lastOperand = result; //Since NSNumber is immutable, no side-effects. Memory management is done in the setter
+	}
+    else if (operation == BCOperatorDivision)
+	{
+		result = [NSNumber numberWithFloat:([self.lastOperand floatValue] / [operand floatValue])]; //this is autoreleased
+	}
+    else if (operation == BCOperatorMultiplication)
+	{
+		result = [NSNumber numberWithFloat:([self.lastOperand floatValue] * [operand floatValue])]; //this is autoreleased
+	}
+    else if (operation == BCOperatorSubtraction)
+	{
+		result = [NSNumber numberWithFloat:([self.lastOperand floatValue] - [operand floatValue])]; //this is autoreleased
+	}
+    else if (operation == BCOperatorNoOperation)
+	{
+		return;
 	}
 	
+    self.lastOperand = result; //Since NSNumber is immutable, no side-effects. Memory management is done in the setter
+    self.lastResult=result; //to make using KVO PAttern possible. So that Result manager can observe this property
+    
 	// Now call the delegate method with the result. If the delegate is nil, this will just do nothing.
 	if (_delegate != nil) {
 		if ([_delegate respondsToSelector:@selector(operationDidCompleteWithResult:)])
@@ -65,8 +98,6 @@
 	else {
 		NSLog(@"WARNING: the BasicCalculator delegate is nil");
 	}
-	
-
 }
 
 // This method clears everything (for the moment 

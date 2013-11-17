@@ -93,7 +93,7 @@
                                                object: nil];
     //[calcLogic addObserver:self forKeyPath:@"lastResult" options:NSKeyValueObservingOptionNew context:NULL];
     [calcLogic addObserver:resultManager forKeyPath:@"lastResult" options:NSKeyValueObservingOptionNew context:NULL];
-
+    
 }
 
 -(void)handleGestures
@@ -120,14 +120,9 @@
         [self operationButtonPressed:button];
     }
     
-    NSNumber *firstOperand =[resultManager firstOperand];
-    [calcLogic setFirstOperand:firstOperand]; //TODO check if we need an if =0 here
-    
-    NSNumber *numberOnScreen =[resultManager onScreenOperand];
-    self.numberTextField.text = [numberOnScreen stringValue];
-    
+    [calcLogic setFirstOperand:[resultManager firstOperand]]; //TODO check if we need an if =0 here
+    self.numberTextField.text = [[resultManager onScreenOperand] stringValue];
     decimalPlacesToCalculateWith = [[resultManager decimalPlaces] intValue];
-    
     textFieldShouldBeCleared=[resultManager textShouldBeCleard];
 }
 
@@ -185,7 +180,7 @@
         if([self dotLocation]!=-1)
         {
             [self.numberTextField setText:[NSString stringWithFormat:@"%@%@",self.numberTextField.text ,@"0"]];
-
+            
         }
         else
         {
@@ -268,21 +263,21 @@
 	// If so, we can start a new calculation, otherwise, we replace the first operand with the result of the operation
     if(!(textFieldShouldBeCleared && currentOperation != BCOperatorNoOperation))
     {
-    
-    
-	if (currentOperation==BCOperatorNoOperation )
-	{
-		[calcLogic setFirstOperand:[NSNumber numberWithFloat:[self.numberTextField.text floatValue]]];
-		
-        if([self dotLocation]==-1)
+        
+        
+        if (currentOperation==BCOperatorNoOperation )
         {
-            digits = self.numberTextField.text.length - 2; //TODO understand
+            [calcLogic setFirstOperand:[NSNumber numberWithFloat:[self.numberTextField.text floatValue]]];
+            
+            if([self dotLocation]==-1)
+            {
+                digits = self.numberTextField.text.length - 2; //TODO understand
+            }
         }
-	}
-	else
-	{
-		[self executeOperation:sender.tag withArgument:[self.numberTextField.text floatValue]];
-	}
+        else
+        {
+            [self executeOperation:sender.tag withArgument:[self.numberTextField.text floatValue]];
+        }
         
         textFieldShouldBeCleared = YES;
     }
@@ -294,7 +289,7 @@
 
 -(void) observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *) context
 {
-      //not used here
+    //not used here
 }
 
 - (IBAction)resultButtonPressed:(UIButton *)sender
@@ -316,6 +311,8 @@
 
 - (IBAction)backPressed:(id)sender
 {
+    [self clearDisplay:(nil)];
+    textFieldShouldBeCleared=YES;
     if([self.back.titleLabel.text isEqual:@"←1"])
     {
         return; // handles some weird rounding behaviour that occurs when changing the decimal places and pressing the back button
@@ -327,11 +324,13 @@
     
 }
 
-- (IBAction)forwardPressed:(id)sender {
-    
-        screenViewSourcefloatInNSString = [resultManager incrementCounterAndReturnStoredValue];
-        [self showValueWithAppropiateDecimalPlaces:[screenViewSourcefloatInNSString floatValue]];
-        [self updateArrowLabels];
+- (IBAction)forwardPressed:(id)sender
+{
+    [self clearDisplay:(nil)];
+    textFieldShouldBeCleared=YES;
+    screenViewSourcefloatInNSString = [resultManager incrementCounterAndReturnStoredValue];
+    [self showValueWithAppropiateDecimalPlaces:[screenViewSourcefloatInNSString floatValue]];
+    [self updateArrowLabels];
     
 }
 

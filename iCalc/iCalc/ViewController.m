@@ -44,7 +44,7 @@
     defaultColor =  [[((UIButton *)[self.view viewWithTag:BCOperatorAddition]) titleLabel] textColor];
     
     
-    [[NSUserDefaults standardUserDefaults] setPersistentDomain:[NSDictionary dictionary] forName:[[NSBundle mainBundle] bundleIdentifier]];//deletes stored values
+    //[[NSUserDefaults standardUserDefaults] setPersistentDomain:[NSDictionary dictionary] forName:[[NSBundle mainBundle] bundleIdentifier]];//deletes stored values
     //TODO comment the line above
     
     [self handleGestures];

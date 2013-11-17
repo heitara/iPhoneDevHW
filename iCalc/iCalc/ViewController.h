@@ -9,7 +9,8 @@
 #import <UIKit/UIKit.h>
 #import "BasicCalculator.h"
 #import "ResultManager.h"
-@interface ViewController : UIViewController<BasicCalculatorDelegate>
+
+@interface ViewController : UIViewController<BasicCalculatorDelegate, PrimeCalculatorDelegate>
 
 @property (weak, nonatomic) IBOutlet UITextField *numberTextField;
 
@@ -20,8 +21,8 @@
 - (IBAction)dotPressed:(id)sender;
 - (void)operationDidCompleteWithResult:(NSNumber*)result;
 
-
-
+@property (weak, nonatomic) IBOutlet UILabel *progressLabel;
+@property (weak, nonatomic) IBOutlet UIActivityIndicatorView *progressIndicator;
 @property (weak, nonatomic) IBOutlet UIButton *back;
 @property (weak, nonatomic) IBOutlet UIButton *forward;
 

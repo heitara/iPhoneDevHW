@@ -44,6 +44,7 @@ typedef enum BCOperator : NSUInteger {
 
 @property (assign) BOOL rememberLastResult;
 @property (strong) id<BasicCalculatorDelegate> delegate;
+@property (strong) id<PrimeCalculatorDelegate> primeDelegate;
 @property (strong) NSNumber *lastOperand;
 @property (strong) NSNumber *lastResult;        // Task 1.3: Use this property for KVO
 
@@ -53,5 +54,12 @@ typedef enum BCOperator : NSUInteger {
 - (void)performOperation:(BCOperator)operation withOperand:(NSNumber*)operand;
 - (void)reset;
 
+
+
+//public interface
+- (BOOL)checkPrime:(NSInteger)theInteger;
+- (void)checkByGCDifAnumberIsPrime:(NSInteger *)theInteger;
+- (void)checkPrimeAllowCancel:(NSInteger)theInteger;
+- (void) cancelAllOperations;
 
 @end

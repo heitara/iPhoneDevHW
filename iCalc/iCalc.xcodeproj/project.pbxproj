@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		206F5292183943F000B6EE01 /* NumbersUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = 206F5291183943F000B6EE01 /* NumbersUtil.m */; };
 		20A09602182404E10040A8FE /* HistoryStack.m in Sources */ = {isa = PBXBuildFile; fileRef = 20A09601182404E10040A8FE /* HistoryStack.m */; };
 		4C6CBA74161F28DD0020BFF7 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C6CBA73161F28DD0020BFF7 /* UIKit.framework */; };
 		4C6CBA76161F28DD0020BFF7 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C6CBA75161F28DD0020BFF7 /* Foundation.framework */; };
@@ -24,6 +25,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		206F5290183943F000B6EE01 /* NumbersUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NumbersUtil.h; sourceTree = "<group>"; };
+		206F5291183943F000B6EE01 /* NumbersUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NumbersUtil.m; sourceTree = "<group>"; };
 		20A09600182404E10040A8FE /* HistoryStack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HistoryStack.h; sourceTree = "<group>"; };
 		20A09601182404E10040A8FE /* HistoryStack.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HistoryStack.m; sourceTree = "<group>"; };
 		4C6CBA6F161F28DD0020BFF7 /* iCalc.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iCalc.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -142,6 +145,8 @@
 				20A09601182404E10040A8FE /* HistoryStack.m */,
 				D9F27EFD1837A8710072D5E1 /* ResultManager.h */,
 				D9F27EFE1837A8710072D5E1 /* ResultManager.m */,
+				206F5290183943F000B6EE01 /* NumbersUtil.h */,
+				206F5291183943F000B6EE01 /* NumbersUtil.m */,
 			);
 			name = Model;
 			sourceTree = "<group>";
@@ -213,6 +218,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4C6CBA80161F28DD0020BFF7 /* main.m in Sources */,
+				206F5292183943F000B6EE01 /* NumbersUtil.m in Sources */,
 				20A09602182404E10040A8FE /* HistoryStack.m in Sources */,
 				D9F27EFF1837A8710072D5E1 /* ResultManager.m in Sources */,
 				D9F73EA0183143A10029A448 /* BasicCalculator.m in Sources */,

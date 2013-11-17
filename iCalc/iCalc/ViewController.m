@@ -35,7 +35,8 @@
     
 	// Do any additional setup after loading the view, typically from a nib.
     calcLogic =[[BasicCalculator alloc] init];
-    calcLogic.delegate=self;
+    calcLogic.delegate = self;
+    calcLogic.primeDelegate = self;
     resultManager=[[ResultManager alloc] init];
     currentOperation = BCOperatorNoOperation;
 	textFieldShouldBeCleared = NO;
@@ -53,6 +54,9 @@
     
     
     [self updateArrowLabels];
+    
+    self.progressLabel.text = @"";
+    self.progressIndicator.hidden = YES;
 }
 
 
@@ -340,6 +344,59 @@
     if(currentOperation != BCOperatorNoOperation && !textFieldShouldBeCleared)//second Operand is Fully Entered
     {
         [self executeOperation:currentOperation withArgument:[self.numberTextField.text floatValue]];
+        
+        //check if the integer part of the number is prime
+        NSString * integerPart = self.numberTextField.text;
+        int dotIndex = [self dotLocation];
+        if(dotIndex != -1)
+        {
+            integerPart = [integerPart substringToIndex:dotIndex];
+        }
+        
+
+        int number = [integerPart intValue];
+        NSLog(@"integer part is : %d", number);
+        
+        //task 2.1
+        //update the UI
+        
+        self.progressIndicator.hidden = NO;
+        // task 2.1
+//        if([calcLogic checkPrime:number])
+//        {
+//            self.progressLabel.text = [NSString stringWithFormat:@"Checking #%d is a prime.", number];
+//        }
+//        else
+//        {
+//            self.progressLabel.text = [NSString stringWithFormat:@"Checking #%d is NOT a prime.", number];
+//        }
+        
+        
+        //task 2.2 invoke async check
+        //update the UI
+        self.progressLabel.text = [NSString stringWithFormat:@"Checking #%d is ...", number];
+        //async call, the result will be deliverd to us in
+        //- (void)didPrimeCheckNumber:(NSNumber *)theNumber result:(BOOL)theIsPrime;
+        [calcLogic checkByGCDifAnumberIsPrime:number];
+    }
+}
+
+- (void)willPrimeCheckNumber:(NSNumber *)theNumber
+{
+    
+}
+
+- (void)didPrimeCheckNumber:(NSNumber *)theNumber result:(BOOL)theIsPrime
+{
+    self.progressIndicator.hidden = YES;
+    
+    if(theIsPrime)
+    {
+        self.progressLabel.text = [NSString stringWithFormat:@"Checking #%@ is a prime.", theNumber];
+    }
+    else
+    {
+        self.progressLabel.text = [NSString stringWithFormat:@"Checking #%@ is NOT a prime.", theNumber];
     }
 }
 

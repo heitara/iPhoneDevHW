@@ -59,6 +59,7 @@
         history = [[HistoryStack alloc] init];
         NSLog(@"load from file");
         [history  loadFromFile];
+        [self instantiateAllSavedValues];
 	}
 	return self;
 }
@@ -70,6 +71,14 @@
     [history  saveToFile];
 }
 
+-(void) instantiateAllSavedValues
+{
+    _firstOperand =[NSNumber numberWithInteger:[[NSUserDefaults standardUserDefaults] integerForKey:@"FirstOperandValue"]] ;
+    _decimalPlaces=[NSNumber numberWithInteger:[[NSUserDefaults standardUserDefaults] integerForKey:@"CalulatorDecimal"]] ;
+    _textShouldBeCleard = [[NSUserDefaults standardUserDefaults] boolForKey:@"textShouldBeCleared"];
+    _operation = [NSNumber numberWithInteger:[[NSUserDefaults standardUserDefaults] integerForKey:@"Operator"]] ;
+    _onScreenOperand =[NSNumber numberWithInteger:[[NSUserDefaults standardUserDefaults] integerForKey:@"SecondOperandValue"]] ;
+}
 
 -(void) observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *) context
 {
@@ -80,5 +89,39 @@
         [history addValue:[NSString stringWithFormat:@"%f", result]];
     }
 }
+
+
+-(void)saveAndCleanup:(BCOperator)currentOperation firstOperand:(NSNumber *)theFirstOperand numberOnCalculatorScreen:(NSNumber *) calculatorScreen decimalPlaces:(int) decimalPlaces typingOfSecondOperandHasBegan:(BOOL) textShouldbeCleared
+{
+    //[[NSUserDefaults standardUserDefaults] setObject:self.numberTextField.text
+    //                                         forKey:@"CalulatorText"];
+    [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithInteger:decimalPlaces]
+                                              forKey:@"CalulatorDecimal"];
+    
+    [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithUnsignedChar:currentOperation]
+                                              forKey:@"Operator"];
+    [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithBool:textShouldbeCleared]
+                                              forKey:@"textShouldBeCleared"];
+
+    
+    
+    if(currentOperation != BCOperatorNoOperation)
+    {//if currentOperation is not empty we know that there first Operand is stored in getOperand
+        [[NSUserDefaults standardUserDefaults] setObject:theFirstOperand
+                                                  forKey:@"FirstOperandValue"];
+    }
+    else
+    {
+        [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithFloat:[calculatorScreen floatValue]]forKey:@"FirstOperandValue"];
+    }
+    
+    if(currentOperation != BCOperatorNoOperation && !textShouldbeCleared) //&&!textShouldbeCleared
+    {
+        [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithFloat:[calculatorScreen floatValue]]
+                                                  forKey:@"SecondOperandValue"];
+        //this is done with 2 values to show the difference between two states: having 0 as the second button pressed and right after pressing the first operand
+    }
+}
+
 
 @end

@@ -106,7 +106,7 @@
     
     
     if(currentOperation != BCOperatorNoOperation)
-    {//if currentOperation is not empty we know that there first Operand is stored in getOperand
+    {
         [[NSUserDefaults standardUserDefaults] setObject:theFirstOperand
                                                   forKey:@"FirstOperandValue"];
     }
@@ -119,7 +119,6 @@
     {
         [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithFloat:[calculatorScreen floatValue]]
                                                   forKey:@"SecondOperandValue"];
-        //this is done with 2 values to show the difference between two states: having 0 as the second button pressed and right after pressing the first operand
     }
 }
 
